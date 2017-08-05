@@ -225,7 +225,14 @@ public class BluetoothMonitorPlugin  extends CordovaPlugin{
             onBluetoothCallbackContext = callbackContext;
             onBluetoothEventFired(callbackContext);
             return true;
+        }else if("connect".equals(action)) {
+            connect(callbackContext, args);
+            return  true;
+        }else if("disconnect".equals(action)) {
+            disconnect(callbackContext,args);
+            return true;
         }
+
         return false;
     }
 
@@ -293,6 +300,47 @@ public class BluetoothMonitorPlugin  extends CordovaPlugin{
             pluginResult.setKeepCallback(true);
             onBluetoothCallbackContext.sendPluginResult(pluginResult);
         }
+    }
+
+
+    /**
+     * This method connects to Bluetooth device
+     *
+     * @param array
+     */
+    private void connect(CallbackContext context, final JSONArray array) throws JSONException {
+        String address = array.getString(0); // gets device address
+
+        if(address == null) {
+            context.error("device address null");
+            return;
+        }
+
+        if (mBluetoothAdapter.isEnabled()) {
+            myBluetoothService.closeGatt();
+            Set<BluetoothDevice> pairedDevices = mBluetoothAdapter.getBondedDevices();
+            for (BluetoothDevice device : pairedDevices) {
+                if (device.getType() == BluetoothDevice.DEVICE_TYPE_LE || device.getType() == BluetoothDevice.DEVICE_TYPE_DUAL && device.getAddress().equals(address)) {
+                    myBluetoothService.connectGatt(webView.getContext(), device);
+                    context.success("DeviceConnected");
+                    break;
+                }
+            }
+            Set<BluetoothDevice> connectedDevices = myBluetoothService.getConnectedDevices();
+            requestPermissions(new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION}, PERMISSION_REQUEST_CODE);
+        }
+    }
+
+
+    /**
+     * Disconnect a device
+     *
+     * @param context
+     * @param array
+     */
+    private void disconnect(CallbackContext context, final JSONArray array) {
+        myBluetoothService.disconnect();
+        context.success("DeviceDisconnected");
     }
 
 }
