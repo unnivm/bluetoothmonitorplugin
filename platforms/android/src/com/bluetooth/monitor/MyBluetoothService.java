@@ -164,4 +164,13 @@ public class MyBluetoothService extends Service {
             return MyBluetoothService.this;
         }
     }
+
+
+    public void disconnect() {
+        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
+            Log.w(TAG, "BluetoothAdapter not initialized");
+            return;
+        }
+        mBluetoothGatt.disconnect();
+    }
 }
